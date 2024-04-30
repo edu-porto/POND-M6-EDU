@@ -15,8 +15,8 @@ setup(
     zip_safe=True,
     maintainer='tiringa',
     maintainer_email='eduardo.porto@sou.inteli.edu.br',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    description='Ponderada 1',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

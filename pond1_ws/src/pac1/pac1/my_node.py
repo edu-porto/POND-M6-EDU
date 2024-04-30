@@ -6,6 +6,8 @@ from geometry_msgs.msg import Twist
 
 # Classe do turtlesim
 class Turtle(Node):
+
+    # Definindo spawn, kill, timer e o tamanho do desenho
     def __init__(self):
         super().__init__('turtle')
         self.publisher_ = self.create_publisher(Twist, 'turtle1/cmd_vel', 10)
@@ -14,33 +16,83 @@ class Turtle(Node):
         self.spawn_client = self.create_client(Spawn, 'spawn')
         self.kill_client = self.create_client(Kill, 'kill')
         self.twist_msg_ = Twist()
-        self.start_time = time.time()  # Record the start time
+        self.start_time = time.time()  
         self.color_changed = False
-    
+        self.side_length = 1.0  
+
+
+    # Aqui é a função que desenha o circulo 
     def draw_square(self):
         current_time = time.time()
         elapsed_time = current_time - self.start_time
-        # Set angular velocity to make the turtle turn
-        self.twist_msg_.linear.x = -10.0  # No forward motion
-        self.twist_msg_.angular.z = 6.0  # Rotate in plac   
-
+        self.twist_msg_.linear.x = self.side_length*0.7
+        self.twist_msg_.angular.z = 1.5  
         self.publisher_.publish(self.twist_msg_)
 
+        #time.sleep(1)  
 
-        if elapsed_time > 7:
+        self.side_length += 1
+
+        # Se o tempo passado é maior que 10 mata a tartaruga 
+        if elapsed_time > 10:
             self.stop()
         
-        elif elapsed_time > 3 and not self.color_changed:
-            self.set_pen()
-            self.color_changed = True
+        # Definindo as cores com base no tempo
+        elif elapsed_time <= 2:
+            self.blue()
+        elif elapsed_time <= 4:
+            self.green()
+        elif elapsed_time <= 6:
+            self.greener()
+        elif elapsed_time <= 8:
+            self.even_greener()
+        elif elapsed_time <= 10:
+            self.pale()
 
     
-    def set_pen(self):
+    # definindo cores
+    def green(self):
         request = SetPen.Request()
-        request.r = 0  # Red color
-        request.g = 153    # Green color
-        request.b = 82    # Blue color
+        request.r = 56  # Red color
+        request.g = 102    # Green color
+        request.b = 65    # Blue color
         request.width = 4
+
+        future = self.pen_client.call_async(request)
+
+    def greener(self):
+        request = SetPen.Request()
+        request.r = 106  # Red color
+        request.g = 153    # Green color
+        request.b = 78    # Blue color
+        request.width = 6
+
+        future = self.pen_client.call_async(request)
+
+    def even_greener(self):
+        request = SetPen.Request()
+        request.r = 167  # Red color
+        request.g = 201    # Green color
+        request.b = 87    # Blue color
+        request.width = 8
+
+        future = self.pen_client.call_async(request)
+
+    def blue(self):
+        request = SetPen.Request()
+        request.r = 21  # Red color
+        request.g = 50    # Green color
+        request.b = 67    # Blue color
+        request.width = 2
+
+        future = self.pen_client.call_async(request)
+    
+    def pale(self):
+        request = SetPen.Request()
+        request.r = 242  # Red color
+        request.g = 232   # Green color
+        request.b = 207    # Blue color
+        request.width = 10
 
         future = self.pen_client.call_async(request)
     
