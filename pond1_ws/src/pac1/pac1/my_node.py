@@ -15,6 +15,7 @@ class Turtle(Node):
         self.kill_client = self.create_client(Kill, 'kill')
         self.twist_msg_ = Twist()
         self.start_time = time.time()  # Record the start time
+        self.color_changed = False
     
     def draw_square(self):
         current_time = time.time()
@@ -25,23 +26,34 @@ class Turtle(Node):
 
         self.publisher_.publish(self.twist_msg_)
 
+
         if elapsed_time > 7:
             self.stop()
+        
+        elif elapsed_time > 3 and not self.color_changed:
+            self.set_pen()
+            self.color_changed = True
+
+    
+    def set_pen(self):
+        request = SetPen.Request()
+        request.r = 0  # Red color
+        request.g = 153    # Green color
+        request.b = 82    # Blue color
+        request.width = 4
+
+        future = self.pen_client.call_async(request)
+    
 
     def stop(self):
         # Stop the turtle's motion
         self.twist_msg_.linear.x = 0.0
-        self.twist_msg_.angular.y = 0.0
+        self.twist_msg_.angular.z = 0.0
         self.publisher_.publish(self.twist_msg_)
         request = Kill.Request()
         request.name = 'turtle1' 
 
         self.kill_client.call_async(request)
-    
-    # def call_kill_service(self):
-    #     request = Kill.Request()
-    #     request.name = 'turtle1'  # Assuming the turtle's name is 'turtle1'
-    #     future = self.kill_client.call_async(request)
 
 
 def main(args=None):
