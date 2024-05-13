@@ -118,7 +118,6 @@ def main(args=None):
     rclpy.spin(turtle1_controller)
 
     turtle1_controller.destroy_node()
-    # turtle2_controller.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

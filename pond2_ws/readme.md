@@ -1,4 +1,4 @@
-# Atividade ponderada - 1
+# Atividade ponderada - 2
 
 ## Objetivo 
 O objetivo dessa atividade é interagir com o turtlebot atráves de uma CLI.
@@ -16,6 +16,26 @@ O objetivo dessa atividade é interagir com o turtlebot atráves de uma CLI.
 Em primeiro lugar é preciso estar com o Ubuntu 22.04 e o pacote ROS instalado. Caso essa etapa não esteja feita, recomendo seguir o seguinte tutorial para configurar o ambiente de desenvolvimento **[tutorial instalação ROS2](https://rmnicola.github.io/m6-ec-encontros/E01/ros)**.
 
 Considerando que o usuário já está em um ambiente Linux com o pacote ROS já configurado para rodar o projeto é preciso seguir os seguintes passos. 
+
+
+#### Criar a venv
+
+    ```console
+python3 -m venv ven
+    ``` 
+
+#### Ligar a venv 
+
+    ```console
+source venv/bin/activate
+    ``` 
+
+#### Instalar os requirements
+    ```console
+python3 -m venv ven
+    ``` 
+
+
 
  1.   No terminal é preciso acessar a pasta raiz do workspace 
 
