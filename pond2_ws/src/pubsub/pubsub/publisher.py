@@ -1,40 +1,59 @@
 import rclpy
 from rclpy.node import Node
+from geometry_msgs.msg import Twist
+import time
 
-from std_msgs.msg import String
-
-
-class MinimalPublisher(Node):
-
+class MoveRobotNode(Node):
     def __init__(self):
-        super().__init__('minimal_publisher')
-        self.publisher_ = self.create_publisher(String, 'topic', 10)
-        timer_period = 0.5  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.i = 0
+        super().__init__('move_robot_node')
 
-    def timer_callback(self):
-        msg = String()
-        msg.data = 'Hello World: %d' % self.i
+        # Publisher to the velocity command topic
+        self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
+
+        # Subscriber to the current velocity topic
+        self.subscription = self.create_subscription(
+            Twist,
+            '/cmd_vel',
+            self.velocity_callback,
+            10)
+
+        self.get_logger().info('MoveRobotNode has been started.')
+
+    def move_forward(self, duration):
+        # Create a Twist message with forward velocity
+        msg = Twist()
+        msg.linear.x = 0.5  # Adjust the speed as necessary
+        msg.angular.z = 0.0
+
+        self.get_logger().info('Moving forward.')
+
+        start_time = time.time()
+        while (time.time() - start_time) < duration:
+            self.publisher_.publish(msg)
+            self.get_logger().info('Published forward velocity command.')
+            self.get_logger().info('Waiting for current velocity...')
+            rclpy.spin_once(self)
+        
+        # Stop the robot after moving forward
+        msg.linear.x = 0.0
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
-        self.i += 1
+        self.get_logger().info('Stopped moving.')
 
+    def velocity_callback(self, msg):
+        self.get_logger().info(f'Received current velocity: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}')
 
 def main(args=None):
     rclpy.init(args=args)
 
-    minimal_publisher = MinimalPublisher()
+    move_robot_node = MoveRobotNode()
 
-    rclpy.spin(minimal_publisher)
+    try:
+        move_robot_node.move_forward(5000)  # Move forward for 5 seconds
+    except KeyboardInterrupt:
+        pass
 
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    minimal_publisher.destroy_node()
+    move_robot_node.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
-    
