@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'cli'
+package_name = 'pubsub'
 
 setup(
     name=package_name,
@@ -16,11 +16,12 @@ setup(
     maintainer='tiringa',
     maintainer_email='eduardo.porto@sou.inteli.edu.br',
     description='TODO: Package description',
-    license='TODO: License declaration',
+    license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'pond_2 = cli.pond_2:main'
+            'talker = pubsub.publisher:main',
+            'listener = pubsub.subscriber:main',
         ],
     },
 )
