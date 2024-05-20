@@ -18,8 +18,9 @@ from std_srvs.srv import Empty
 
 # Classe que vai receber as informações do webots
 class MyWebotsNode(Node):
-    def __init__(self):
+    def __init__(self, move_robot_node):
         super().__init__('webots_node')
+        self.move_robot_node = move_robot_node
         self.subscription = self.create_subscription(
             Odometry,
             'odom',
@@ -44,16 +45,19 @@ class MyWebotsNode(Node):
             delta_y = msg.pose.pose.position.y - self.last_odometry_msg.pose.pose.position.y
             linear_speed = (delta_x**2 + delta_y**2)**0.5 / time_delta
             
-            # Calculate linear acceleration
+            # # Calculate linear acceleration
             # if self.last_speed is not None:
-            #     # Show position and speed information
-            #     self.get_logger().info(f'Linear speed: {linear_speed:.2f} m/s, Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
+                 # Show position and speed information
+            #self.get_logger().info(f'Linear speed: {linear_speed:.2f} m/s, Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
             # else:
-            #     pass
             #     self.get_logger().info(f'Robot not moving. Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
-                
+            #     pass
+                 
             # Update last speed
             self.last_speed = linear_speed
+            # self.get_logger().info(f'Odometry: Linear speed: {linear_speed:.2f} m/s, Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
+            # Enviando dados da telemetria pro outro nó 
+            self.move_robot_node.update_odometry(msg, linear_speed)        
         else:
             self.get_logger().info('Waiting for more data to calculate speed and acceleration.')
         
@@ -85,6 +89,15 @@ class MoveRobotNode(Node):
         self.emergency_stop_client = self.create_client(Empty, 'emergency_stop')
         while not self.emergency_stop_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waiting for emergency_stop service...')
+        self.emergency_triggered = False  # Flag to indicate emergency stop
+
+        # Variables to store odometry data
+        self.odometry_msg = None
+        self.linear_speed = None
+
+    def update_odometry(self, msg, linear_speed):
+        self.odometry_msg = msg
+        self.linear_speed = linear_speed
 
     def move_forward(self):
         msg = Twist()
@@ -128,23 +141,30 @@ class MoveRobotNode(Node):
         msg.angular.z = 0.0
         self.publisher_.publish(msg)
 
+    # Função que vai lidar com a parada de emergência ativando o serviço
     def handle_emergency_stop(self, request, response):
         self.emergency()
         self.get_logger().info('Emergency stop triggered via service.')
-        rclpy.shutdown()
+        # Flag to indicate emergency stop
+        self.emergency_triggered = True 
+        # rclpy.shutdown()
         return response    
     
     def call_emergency_stop(self):
         request = Empty.Request()
+        self.emergency()
         future = self.emergency_stop_client.call_async(request)
         rclpy.spin_until_future_complete(self, future)
         if future.result() is not None:
-            self.get_logger().info('Emergency stop triggered via client.')
+            self.get_logger().info('Emergency stop triggered via service.')
         else:
             self.get_logger().warning('Service call failed.')
 
     def velocity_callback(self, msg):
-        self.get_logger().info(f'Status do publisher: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}')
+        odometry_info = ""
+        if self.odometry_msg is not None:
+            odometry_info = f'Odometry: Linear speed: {self.linear_speed:.2f} m/s, Positions x={self.odometry_msg.pose.pose.position.x:.2f}, y={self.odometry_msg.pose.pose.position.y:.2f}'
+        self.get_logger().info(f'Status do publisher: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}{odometry_info}')        
 
 
 
@@ -203,7 +223,7 @@ def main(args=None):
     simulated_bot = MoveRobotNode()
 
     # Create a node for the webots simulation
-    webots_node = MyWebotsNode()
+    webots_node = MyWebotsNode(simulated_bot)
 
     # Create a MultiThreadedExecutor
     executor = MultiThreadedExecutor(num_threads=2)
@@ -215,8 +235,11 @@ def main(args=None):
     # Running the CLI as a thread
     cli_thread = threading.Thread(target=cli_control, args=(simulated_bot,))
     cli_thread.start()
+
+    # Adicionando uma condicional para checar se o sistema de emergência foi ativado
     try:
-        executor.spin()
+        while rclpy.ok() and not simulated_bot.emergency_triggered:
+            executor.spin_once()
     except KeyboardInterrupt:
         pass
     
