@@ -2,8 +2,9 @@ import rclpy
 from InquirerPy import inquirer
 from InquirerPy.utils import InquirerPyKeybindings
 from rclpy.node import Node
-from geometry_msgs.msg import Twist, Vector3
-import time
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Twist
+
 
 class MoveRobotNode(Node):
     def __init__(self):
@@ -93,32 +94,32 @@ def main(args=None):
     @cli.register_kb("w")
     def forward(_):
         simulated_bot.move_forward()
-        print("Hello W")
+        print("Moving forward")
 
     @cli.register_kb("a")
     def left(_):
         simulated_bot.turn_left()
-        print("Hello A")
+        print("Turning left")
     
     @cli.register_kb("d")
     def right(_):
         simulated_bot.turn_right()
-        print("Hello D") 
+        print("Turning right") 
 
     @cli.register_kb("s")
     def backwards(_):
         simulated_bot.backward()
-        print("Hello S")
+        print("Moving backwards")
 
     @cli.register_kb("space")
     def brake(_):
         simulated_bot.brake()
-        print("Hello Space")    
+        print("Braking")    
         
     @cli.register_kb("q")
     def emergency_stop(_):
         simulated_bot.emergency()
-        print("Hello Q")
+        print("Emergency stop")
 
     execute_cli = cli.execute()
 
