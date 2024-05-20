@@ -1,6 +1,8 @@
 import rclpy
+from InquirerPy import inquirer
+from InquirerPy.utils import InquirerPyKeybindings
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Vector3
 import time
 
 class MoveRobotNode(Node):
@@ -10,6 +12,7 @@ class MoveRobotNode(Node):
         # Publisher to the velocity command topic
         self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
 
+
         # Subscriber to the current velocity topic
         self.subscription = self.create_subscription(
             Twist,
@@ -17,42 +20,114 @@ class MoveRobotNode(Node):
             self.velocity_callback,
             10)
 
-        self.get_logger().info('MoveRobotNode has been started.')
-
-    def move_forward(self, duration):
+        self.get_logger().info('O robô foi iniciado .')
+        
+    def move_forward(self):
         # Create a Twist message with forward velocity
         msg = Twist()
-        msg.linear.x = 0.5  # Adjust the speed as necessary
+        msg.linear.x = 0.2  # Adjust the speed as necessary
         msg.angular.z = 0.0
 
         self.get_logger().info('Moving forward.')
 
-        start_time = time.time()
-        while (time.time() - start_time) < duration:
-            self.publisher_.publish(msg)
-            self.get_logger().info('Published forward velocity command.')
-            self.get_logger().info('Waiting for current velocity...')
-            rclpy.spin_once(self)
-        
-        # Stop the robot after moving forward
-        msg.linear.x = 0.0
+        # start_time = time.time()
+        # Aqui é publicada a msg pro robo ir pra frente
+        # while (time.time() - start_time) < duration:
         self.publisher_.publish(msg)
-        self.get_logger().info('Stopped moving.')
+        # rclpy.spin_once(self)
+        
+        # # Stop the robot after moving forward
+        # msg.linear.x = 0.0
+        # self.publisher_.publish(msg)
+        # self.get_logger().info('Stopped moving.')
+
+    def turn_left(self):
+        msg = Twist()
+        msg.angular.z = 0.4
+
+        self.get_logger().info('Moving to the left')
+        self.publisher_.publish(msg)
+
+    def turn_right(self):
+        msg = Twist()
+        msg.angular.z = -0.4
+
+        self.get_logger().info('Moving to the right')
+        self.publisher_.publish(msg)
+
+    def backward(self):
+        msg = Twist()
+        msg.linear.x  = -0.2
+
+        self.get_logger().info('Backwars')
+        self.publisher_.publish(msg)
+
+    def brake(self):
+        msg = Twist()
+        msg.linear.x  = 0.0
+
+        self.get_logger().info('Braking')
+        self.publisher_.publish(msg)
+
+
+    def emergency(self):
+        msg = Twist()
+        msg.linear.x = 0.0
+        msg.angular.z = 0.0
+        self.publisher_.publish(msg)
 
     def velocity_callback(self, msg):
-        self.get_logger().info(f'Received current velocity: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}')
+        self.get_logger().info(f'Status do robô: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}')
+
 
 def main(args=None):
     rclpy.init(args=args)
 
-    move_robot_node = MoveRobotNode()
+    simulated_bot = MoveRobotNode()
+    
+    cli = inquirer.text(message="")
+    keybindings: InquirerPyKeybindings = {
+            "interrupt": [{"key": "q"}, {"key": "c-c"}],
+        }
+    
+    @cli.register_kb("w")
+    def forward(_):
+        simulated_bot.move_forward()
+        print("Hello W")
+
+    @cli.register_kb("a")
+    def left(_):
+        simulated_bot.turn_left()
+        print("Hello A")
+    
+    @cli.register_kb("d")
+    def right(_):
+        simulated_bot.turn_right()
+        print("Hello D") 
+
+    @cli.register_kb("s")
+    def backwards(_):
+        simulated_bot.backward()
+        print("Hello S")
+
+    @cli.register_kb("space")
+    def brake(_):
+        simulated_bot.brake()
+        print("Hello Space")    
+        
+    @cli.register_kb("q")
+    def emergency_stop(_):
+        simulated_bot.emergency()
+        print("Hello Q")
+
+    execute_cli = cli.execute()
 
     try:
-        move_robot_node.move_forward(5000)  # Move forward for 5 seconds
+      execute_cli
     except KeyboardInterrupt:
         pass
 
-    move_robot_node.destroy_node()
+    simulated_bot.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
