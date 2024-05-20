@@ -15,13 +15,12 @@ setup(
     zip_safe=True,
     maintainer='tiringa',
     maintainer_email='eduardo.porto@sou.inteli.edu.br',
-    description='TODO: Package description',
+    description='Control the webots through the CLI',
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'talker = pubsub.publisher:main',
-            'listener = pubsub.subscriber:main',
+            'talker = pubsub.publisher:main'
         ],
     },
 )

@@ -1,6 +1,5 @@
 import rclpy
 from InquirerPy import inquirer
-from InquirerPy.utils import InquirerPyKeybindings
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
@@ -21,6 +20,8 @@ class MyWebotsNode(Node):
     def __init__(self, move_robot_node):
         super().__init__('webots_node')
         self.move_robot_node = move_robot_node
+
+        # Se inscrevendo no tópico que recebe dados do odometro do robô  
         self.subscription = self.create_subscription(
             Odometry,
             'odom',
@@ -44,18 +45,8 @@ class MyWebotsNode(Node):
             delta_x = msg.pose.pose.position.x - self.last_odometry_msg.pose.pose.position.x
             delta_y = msg.pose.pose.position.y - self.last_odometry_msg.pose.pose.position.y
             linear_speed = (delta_x**2 + delta_y**2)**0.5 / time_delta
-            
-            # # Calculate linear acceleration
-            # if self.last_speed is not None:
-                 # Show position and speed information
-            #self.get_logger().info(f'Linear speed: {linear_speed:.2f} m/s, Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
-            # else:
-            #     self.get_logger().info(f'Robot not moving. Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
-            #     pass
-                 
-            # Update last speed
+
             self.last_speed = linear_speed
-            # self.get_logger().info(f'Odometry: Linear speed: {linear_speed:.2f} m/s, Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
             # Enviando dados da telemetria pro outro nó 
             self.move_robot_node.update_odometry(msg, linear_speed)        
         else:
@@ -69,11 +60,11 @@ class MoveRobotNode(Node):
     def __init__(self):
         super().__init__('move_robot_node')
 
-        # Publisher to the velocity command topic
+        # Criando um publisher para publicar no tópico que comanda a velocidade do robô
         self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
 
 
-        # Subscriber to the current velocity topic
+        # Se inscrevendo no tópico que recebe a velocidade do robô
         self.subscription = self.create_subscription(
             Twist,
             '/cmd_vel',
@@ -82,16 +73,18 @@ class MoveRobotNode(Node):
         self.get_logger().set_level(rclpy.logging.LoggingSeverity.INFO)
         self.get_logger().info('O robô foi iniciado .')
 
-        # Creating the emergency stop service 
+        # Criando o serviço de parada de emergência  
         self.emergency_stop_service = self.create_service(Empty, 'emergency_stop', self.handle_emergency_stop)        
 
         # Criando a estrutura de cliente servidor para a parada de emergência 
         self.emergency_stop_client = self.create_client(Empty, 'emergency_stop')
         while not self.emergency_stop_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waiting for emergency_stop service...')
-        self.emergency_triggered = False  # Flag to indicate emergency stop
+        
+        # FLag para saber se o sistema de emergência foi ativado ou não S
+        self.emergency_triggered = False 
 
-        # Variables to store odometry data
+        # Variáveis que guardam as informações de telemeria do robô
         self.odometry_msg = None
         self.linear_speed = None
 
@@ -145,7 +138,7 @@ class MoveRobotNode(Node):
     def handle_emergency_stop(self, request, response):
         self.emergency()
         self.get_logger().info('Emergency stop triggered via service.')
-        # Flag to indicate emergency stop
+        # Criando uma flag que mostra que houve emergência 
         self.emergency_triggered = True 
         # rclpy.shutdown()
         return response    
@@ -163,8 +156,9 @@ class MoveRobotNode(Node):
     def velocity_callback(self, msg):
         odometry_info = ""
         if self.odometry_msg is not None:
-            odometry_info = f'Odometry: Linear speed: {self.linear_speed:.2f} m/s, Positions x={self.odometry_msg.pose.pose.position.x:.2f}, y={self.odometry_msg.pose.pose.position.y:.2f}'
-        self.get_logger().info(f'Status do publisher: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}{odometry_info}')        
+            odometry_info = f'Dados robô: Velocidade: {self.linear_speed:.2f} m/s, Posição x={self.odometry_msg.pose.pose.position.x:.2f}, y={self.odometry_msg.pose.pose.position.y:.2f}'
+        self.get_logger().info(f'Inputs do robô: Velocidade Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}')    
+        self.get_logger().info(odometry_info)    
 
 
 
@@ -172,10 +166,7 @@ class MoveRobotNode(Node):
 def cli_control(simulated_bot):
     simulated_bot = MoveRobotNode()
 
-    cli = inquirer.text(message="")
-    keybindings: InquirerPyKeybindings = {
-            "interrupt": [{"key": "q"}, {"key": "c-c"}],
-        }
+    cli = inquirer.text(message="Controle o robô com as teclas WASD, espaço para frear e Q para parada de emergência")
     
     @cli.register_kb("w")
     def forward(_):
