@@ -1,9 +1,32 @@
+from pydoc import cli
 import rclpy
 from InquirerPy import inquirer
 from InquirerPy.utils import InquirerPyKeybindings
 from rclpy.node import Node
-from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
+
+# Connecting to a publisher 
+from nav_msgs.msg import Odometry
+
+# Handling multiple nodes
+from rclpy.executors import MultiThreadedExecutor
+
+# Importing the threading so i can run the cli 
+import threading
+
+# Classe que vai receber as informações do webots
+class MyWebotsNode(Node):
+    def __init__(self):
+        super().__init__('webots_node')
+        self.subscription = self.create_subscription(
+            Odometry,
+            'odom',
+            self.odometry_callback,
+            1)
+
+    def odometry_callback(self, msg):
+        self.get_logger().info(f'Odometry: {msg.pose.pose.position.x}, {msg.pose.pose.position.y}')
+
 
 
 class MoveRobotNode(Node):
@@ -81,11 +104,11 @@ class MoveRobotNode(Node):
         self.get_logger().info(f'Status do robô: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}')
 
 
-def main(args=None):
-    rclpy.init(args=args)
 
+# Function that implements the CLI control 
+def cli_control(simulated_bot):
     simulated_bot = MoveRobotNode()
-    
+
     cli = inquirer.text(message="")
     keybindings: InquirerPyKeybindings = {
             "interrupt": [{"key": "q"}, {"key": "c-c"}],
@@ -124,12 +147,41 @@ def main(args=None):
     execute_cli = cli.execute()
 
     try:
-      execute_cli
+        execute_cli.spin()
+        
     except KeyboardInterrupt:
         pass
 
+def main(args=None):
+    rclpy.init(args=args)
+
+    simulated_bot = MoveRobotNode()
+
+    # Create a node for the webots simulation
+    webots_node = MyWebotsNode()
+
+    # Create a MultiThreadedExecutor
+    executor = MultiThreadedExecutor(num_threads=2)
+
+    # Adding the nodes to the MultiThreaded function 
+    executor.add_node(simulated_bot)
+    executor.add_node(webots_node)
+
+    # Running the CLI as a thread
+    cli_thread = threading.Thread(target=cli_control, args=(simulated_bot,))
+    cli_thread.start()
+    try:
+        executor.spin()
+    except KeyboardInterrupt:
+        pass
+    
+
+    # rclpy.spin(webots_node)
+
     simulated_bot.destroy_node()
+    webots_node.destroy_node()
     rclpy.shutdown()
+    cli_thread.join()
 
 if __name__ == '__main__':
     main()
