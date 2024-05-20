@@ -1,4 +1,3 @@
-from pydoc import cli
 import rclpy
 from InquirerPy import inquirer
 from InquirerPy.utils import InquirerPyKeybindings
@@ -23,11 +22,40 @@ class MyWebotsNode(Node):
             'odom',
             self.odometry_callback,
             1)
+        self.last_odometry_msg = None
+        self.last_timestamp = None
+        self.last_speed = None
+
+        self.get_logger().set_level(rclpy.logging.LoggingSeverity.INFO)
+        
 
     def odometry_callback(self, msg):
-        self.get_logger().info(f'Odometry: {msg.pose.pose.position.x}, {msg.pose.pose.position.y}')
-
-
+        current_time = self.get_clock().now()
+        
+        if self.last_odometry_msg is not None and self.last_timestamp is not None:
+            # Calculate time difference in seconds
+            time_delta = (current_time - self.last_timestamp).nanoseconds / 1e9
+            
+            # Calculate linear speed
+            delta_x = msg.pose.pose.position.x - self.last_odometry_msg.pose.pose.position.x
+            delta_y = msg.pose.pose.position.y - self.last_odometry_msg.pose.pose.position.y
+            linear_speed = (delta_x**2 + delta_y**2)**0.5 / time_delta
+            
+            # Calculate linear acceleration
+            if self.last_speed is not None:
+                # Show position and speed information
+                self.get_logger().info(f'Linear speed: {linear_speed:.2f} m/s, Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
+            else:
+                self.get_logger().info(f'Robot not moving. Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
+                
+            # Update last speed
+            self.last_speed = linear_speed
+        else:
+            self.get_logger().info('Waiting for more data to calculate speed and acceleration.')
+        
+        # Update last odometry message and timestamp
+        self.last_odometry_msg = msg
+        self.last_timestamp = current_time
 
 class MoveRobotNode(Node):
     def __init__(self):
@@ -43,7 +71,7 @@ class MoveRobotNode(Node):
             '/cmd_vel',
             self.velocity_callback,
             10)
-
+        self.get_logger().set_level(rclpy.logging.LoggingSeverity.INFO)
         self.get_logger().info('O robô foi iniciado .')
         
     def move_forward(self):
