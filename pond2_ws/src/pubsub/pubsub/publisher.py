@@ -13,6 +13,9 @@ from rclpy.executors import MultiThreadedExecutor
 # Importing the threading so i can run the cli 
 import threading
 
+# Importing the service 
+from std_srvs.srv import Empty
+
 # Classe que vai receber as informações do webots
 class MyWebotsNode(Node):
     def __init__(self):
@@ -42,11 +45,12 @@ class MyWebotsNode(Node):
             linear_speed = (delta_x**2 + delta_y**2)**0.5 / time_delta
             
             # Calculate linear acceleration
-            if self.last_speed is not None:
-                # Show position and speed information
-                self.get_logger().info(f'Linear speed: {linear_speed:.2f} m/s, Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
-            else:
-                self.get_logger().info(f'Robot not moving. Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
+            # if self.last_speed is not None:
+            #     # Show position and speed information
+            #     self.get_logger().info(f'Linear speed: {linear_speed:.2f} m/s, Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
+            # else:
+            #     pass
+            #     self.get_logger().info(f'Robot not moving. Positions x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
                 
             # Update last speed
             self.last_speed = linear_speed
@@ -73,52 +77,48 @@ class MoveRobotNode(Node):
             10)
         self.get_logger().set_level(rclpy.logging.LoggingSeverity.INFO)
         self.get_logger().info('O robô foi iniciado .')
-        
+
+        # Creating the emergency stop service 
+        self.emergency_stop_service = self.create_service(Empty, 'emergency_stop', self.handle_emergency_stop)        
+
+        # Criando a estrutura de cliente servidor para a parada de emergência 
+        self.emergency_stop_client = self.create_client(Empty, 'emergency_stop')
+        while not self.emergency_stop_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Waiting for emergency_stop service...')
+
     def move_forward(self):
-        # Create a Twist message with forward velocity
         msg = Twist()
-        msg.linear.x = 0.2  # Adjust the speed as necessary
+        msg.linear.x = 0.2
         msg.angular.z = 0.0
-
-        self.get_logger().info('Moving forward.')
-
-        # start_time = time.time()
-        # Aqui é publicada a msg pro robo ir pra frente
-        # while (time.time() - start_time) < duration:
+        # self.get_logger().info('Moving forward.')
         self.publisher_.publish(msg)
-        # rclpy.spin_once(self)
-        
-        # # Stop the robot after moving forward
-        # msg.linear.x = 0.0
-        # self.publisher_.publish(msg)
-        # self.get_logger().info('Stopped moving.')
 
     def turn_left(self):
         msg = Twist()
         msg.angular.z = 0.4
 
-        self.get_logger().info('Moving to the left')
+        # self.get_logger().info('Moving to the left')
         self.publisher_.publish(msg)
 
     def turn_right(self):
         msg = Twist()
         msg.angular.z = -0.4
 
-        self.get_logger().info('Moving to the right')
+        # self.get_logger().info('Moving to the right')
         self.publisher_.publish(msg)
 
     def backward(self):
         msg = Twist()
         msg.linear.x  = -0.2
 
-        self.get_logger().info('Backwars')
+        # self.get_logger().info('Backwards')
         self.publisher_.publish(msg)
 
     def brake(self):
         msg = Twist()
         msg.linear.x  = 0.0
 
-        self.get_logger().info('Braking')
+        # self.get_logger().info('Braking')
         self.publisher_.publish(msg)
 
 
@@ -128,8 +128,23 @@ class MoveRobotNode(Node):
         msg.angular.z = 0.0
         self.publisher_.publish(msg)
 
+    def handle_emergency_stop(self, request, response):
+        self.emergency()
+        self.get_logger().info('Emergency stop triggered via service.')
+        rclpy.shutdown()
+        return response    
+    
+    def call_emergency_stop(self):
+        request = Empty.Request()
+        future = self.emergency_stop_client.call_async(request)
+        rclpy.spin_until_future_complete(self, future)
+        if future.result() is not None:
+            self.get_logger().info('Emergency stop triggered via client.')
+        else:
+            self.get_logger().warning('Service call failed.')
+
     def velocity_callback(self, msg):
-        self.get_logger().info(f'Status do robô: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}')
+        self.get_logger().info(f'Status do publisher: Linear.x = {msg.linear.x}, Angular.z = {msg.angular.z}')
 
 
 
@@ -145,32 +160,34 @@ def cli_control(simulated_bot):
     @cli.register_kb("w")
     def forward(_):
         simulated_bot.move_forward()
-        print("Moving forward")
+        # print("Moving forward")
 
     @cli.register_kb("a")
     def left(_):
         simulated_bot.turn_left()
-        print("Turning left")
+        # print("Turning left")
     
     @cli.register_kb("d")
     def right(_):
         simulated_bot.turn_right()
-        print("Turning right") 
+        # print("Turning right") 
 
     @cli.register_kb("s")
     def backwards(_):
         simulated_bot.backward()
-        print("Moving backwards")
+        # print("Moving backwards")
 
     @cli.register_kb("space")
     def brake(_):
         simulated_bot.brake()
-        print("Braking")    
+        # print("Braking")    
         
     @cli.register_kb("q")
     def emergency_stop(_):
-        simulated_bot.emergency()
-        print("Emergency stop")
+
+        simulated_bot.call_emergency_stop()
+        # simulated_bot.destroy_node()
+        # print("Emergency stop")
 
     execute_cli = cli.execute()
 
