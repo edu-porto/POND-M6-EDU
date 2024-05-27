@@ -23,6 +23,8 @@ components: {
 
 data() {
   return {
+    ws: null,
+    messages: [],
     isForwardClicked: false,
     isBackwardClicked: false,
     isLeftClicked: false,
@@ -30,20 +32,36 @@ data() {
   }
 },
 
+// Se conectando ao websocket 
+created() {
+  this.ws = new WebSocket('ws://localhost:8000/ws');
+  this.ws.onopen = () => {
+    console.log('Connected to server');
+  };
+  this.ws.onmessage = (event) => {
+    this.messages.push(event.data);
+  };
+},
+
+// Os métodos enviam mensagens para o servidor
 methods: {
   moveForward() {
+    this.ws.send('move_forward');
     this.isForwardClicked = true;
     console.log('Moving Forward');
   },
   moveBackward() {
+    this.ws.send('backward');
     this.isBackwardClicked = true;
     console.log('Moving Backward');
   },
   moveLeft() {
+    this.ws.send('turn_left');
     this.isLeftClicked = true;
     console.log('Moving Left');
   },
   moveRight() {
+    this.ws.send('turn_right');
     this.isRightClicked = true;
     console.log('Moving Right');
   },
@@ -73,6 +91,10 @@ methods: {
       console.log('Stopped Moving Right');
     }
   }
+},
+
+beforeDestroy() {
+  this.ws.close();
 },
 
 mounted() {

@@ -2,6 +2,8 @@
 
 ## Objetivo 
 
+Com base nas atividades desenvolvidas na última ponderada é preciso implementar um frontend que faça a conexão com o robô e implementar um sistema de transmissão de imagens.
+
 
 ## Atividades Desenvolvidas 
 
