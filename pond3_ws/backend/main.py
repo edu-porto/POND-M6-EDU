@@ -10,6 +10,7 @@ import threading
 import asyncio
 import cv2
 
+# Classe do robô da ponderada antiga
 class MoveRobotNode(Node):
     def __init__(self):
         super().__init__('move_robot_node')
@@ -107,7 +108,7 @@ def shutdown_event():
     simulated_bot.destroy_node()
     rclpy.shutdown()
 
-
+# Websocket que recebe a imagem da webcam
 @app.websocket("/wsVideo")
 async def websocket_video(websocket: WebSocket):
     await websocket.accept()
@@ -137,6 +138,7 @@ async def websocket_video(websocket: WebSocket):
         video_capture.release()
         await websocket.close()
 
+# Websocket para comunicar com o robô 
 @app.websocket("/wsRobot")
 async def websocket_robot(websocket: WebSocket):
     await websocket.accept()

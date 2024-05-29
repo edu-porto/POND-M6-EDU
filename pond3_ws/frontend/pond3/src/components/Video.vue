@@ -1,5 +1,4 @@
 <template>
-  <h1>Video</h1>
     <canvas ref="canvas" width="440" height="380"></canvas>
 </template>
 

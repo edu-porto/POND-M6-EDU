@@ -6,6 +6,7 @@
         <Control />
     </div>
     <div class="video-container">
+        <h1>Vídeo da webcam</h1>
         <Video />
     </div>
 </template>
@@ -30,11 +31,11 @@ import Video from '../components/Video.vue';
 
 .video-container {
   margin: 2%;
-  left: 0;        
+  left: 20%;        
   transform: translateY(50%); 
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: left;
+  align-items: left;
 }
 
 </style>
