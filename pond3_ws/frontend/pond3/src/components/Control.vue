@@ -37,9 +37,9 @@ data() {
 
 // Se conectando ao websocket 
 created() {
-  this.ws = new WebSocket('ws://localhost:8000/ws');
+  this.ws = new WebSocket('ws://localhost:8000/wsRobot');
   this.ws.onopen = () => {
-    console.log('Connected to server');
+    console.log('Connected to robot server');
   };
   this.ws.onmessage = (event) => {
     this.messages.push(event.data);

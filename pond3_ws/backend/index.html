@@ -1,32 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ROS2 Robot Control</title>
+    <meta charset="UTF-8">
+    <title>WebSocket Video Stream</title>
 </head>
 <body>
-    <h1>Control the Robot</h1>
-    <button onclick="sendCommand('move_forward')">Move Forward</button>
-    <button onclick="sendCommand('turn_left')">Turn Left</button>
-    <button onclick="sendCommand('turn_right')">Turn Right</button>
-    <button onclick="sendCommand('backward')">Move Backward</button>
-    <button onclick="sendCommand('brake')">Brake</button>
-    <button onclick="sendCommand('emergency_stop')">Emergency Stop</button>
-    <div id="response"></div>
-
+    <canvas id="videoCanvas" width="640" height="480"></canvas>
     <script>
-        const websocket = new WebSocket("ws://localhost:8000/ws");
+        const canvas = document.getElementById('videoCanvas');
+        const context = canvas.getContext('2d');
+        const socket = new WebSocket('ws://localhost:8000/wsVideo');
 
-        websocket.onmessage = function(event) {
-            document.getElementById("response").innerText = event.data;
+        socket.binaryType = 'arraybuffer';
+
+        socket.onopen = () => {
+            console.log('WebSocket connection established');
         };
 
-        websocket.onclose = function(event) {
-            console.log("WebSocket closed: ", event);
+        socket.onmessage = (event) => {
+            const arrayBuffer = event.data;
+            const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                URL.revokeObjectURL(url); // Clean up after image is drawn
+            };
+            img.src = url;
         };
 
-        function sendCommand(command) {
-            websocket.send(command);
-        }
+        socket.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+
+        socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
     </script>
 </body>
 </html>

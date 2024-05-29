@@ -8,6 +8,7 @@ from std_srvs.srv import Empty
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import threading
 import asyncio
+import cv2
 
 class MoveRobotNode(Node):
     def __init__(self):
@@ -107,8 +108,37 @@ def shutdown_event():
     rclpy.shutdown()
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@app.websocket("/wsVideo")
+async def websocket_video(websocket: WebSocket):
+    await websocket.accept()
+    print("Video websocket connected")
+    video_capture = cv2.VideoCapture(0)
+    try:
+        print("Video capture opened")
+        while True:
+            print("Reading frame")
+            ret, frame = video_capture.read()
+            if not ret:
+                print("Frame not read")
+                break
+            _, buffer = cv2.imencode('.jpg', frame)
+
+            # Aumentando a compressão da imagem
+            encoding = [int(cv2.IMWRITE_JPEG_QUALITY), 42]
+            _, buffer = cv2.imencode('.jpg', frame, encoding)
+            
+
+            await websocket.send_bytes(buffer.tobytes())
+    except WebSocketDisconnect:
+        video_capture.release()
+        await websocket.close()
+    except Exception as e:
+        print(f"Error as exception: {e}")
+        video_capture.release()
+        await websocket.close()
+
+@app.websocket("/wsRobot")
+async def websocket_robot(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
