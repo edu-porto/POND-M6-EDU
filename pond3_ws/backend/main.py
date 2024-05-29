@@ -1,14 +1,14 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry
 import uvicorn
 
 from std_srvs.srv import Empty
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import threading
-import asyncio
 import cv2
+
+import time
 
 # Classe do robô da ponderada antiga
 class MoveRobotNode(Node):
@@ -88,10 +88,12 @@ class MoveRobotNode(Node):
         return el_bot
     
     def keep_spinning(bot):
-        rclpy.spin(bot)
-        bot.destroy_node()
-        rclpy.shutdown()
-      
+        try:
+            rclpy.spin(bot)
+        finally:
+            bot.destroy_node()
+            rclpy.shutdown()
+        
 
 app = FastAPI()
 simulated_bot = MoveRobotNode.begin_bot()
@@ -114,22 +116,29 @@ async def websocket_video(websocket: WebSocket):
     await websocket.accept()
     print("Video websocket connected")
     video_capture = cv2.VideoCapture(0)
+
     try:
         print("Video capture opened")
         while True:
-            print("Reading frame")
+            # print("Reading frame")
             ret, frame = video_capture.read()
             if not ret:
                 print("Frame not read")
                 break
             _, buffer = cv2.imencode('.jpg', frame)
+            # Adicionando um timestamp para calcular o ping 
+            timestamp = str(time.time()).encode('utf-8')
 
             # Aumentando a compressão da imagem
             encoding = [int(cv2.IMWRITE_JPEG_QUALITY), 42]
             _, buffer = cv2.imencode('.jpg', frame, encoding)
-            
 
-            await websocket.send_bytes(buffer.tobytes())
+            buffer_bytes = buffer.tobytes()
+            delimiter = b'::'
+
+            ws_msg = buffer_bytes + delimiter + timestamp
+            # print(f"Sending frame  {(ws_msg)}")
+            await websocket.send_bytes(ws_msg)
     except WebSocketDisconnect:
         video_capture.release()
         await websocket.close()
@@ -160,6 +169,9 @@ async def websocket_robot(websocket: WebSocket):
             await websocket.send_text(f"Command received: {data}")
     except WebSocketDisconnect:
         await websocket.close()
+
+
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

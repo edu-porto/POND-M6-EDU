@@ -6,7 +6,6 @@
         <Control />
     </div>
     <div class="video-container">
-        <h1>Vídeo da webcam</h1>
         <Video />
     </div>
 </template>
