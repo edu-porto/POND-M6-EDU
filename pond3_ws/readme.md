@@ -49,26 +49,32 @@ Considerando que o usuário já está em um ambiente Linux com o pacote ROS já 
     cd pond3_ws/src
     ``` 
 
-2. Após garantir que o terminal está dentro da raíz do workspace é preciso construir o pacote. Continuando no terminal é executado o seguinte comando 
+2. Após garantir que o terminal está dentro da raíz do backend é preciso ligar a venv e instalar os requirements.
 
-    ```console
-    colcon build
+    ```console python3 - venv venv
+        source venv/bin/activate 
+        python3 pip install -r requirements.txt
     ``` 
 
-3. Com o pacote construido só basta executar :
+3. Com o setup correto é só rodar o backend  :
 
 
     ```console
-	 source install/setup.bash
+	 python3 main.py
       ```
 
-4. Agora só basta executar o pacote e conferir o resultado. No mesmo terminal execute : 
+4. Agora só basta instalar o frontend e usufruir da solução: 
 
     ```console 
-    ros2 run pond3 bot1 
-    ```  
+    cd frontend/pond3
 
-5. Em outro terminal é preciso rodar o webots. Esse comando permite o usuário simular o turtlebot. 
+    npm install
+
+    npm run dev
+    ```  
+  Logo em seguida é possível acessar o local host e usar a interface. 
+
+5. Em outro terminal é preciso rodar o webots. Esse comando permite o usuário simular o turtlebot e controlar pelo frontend. 
 
 
     ```console
@@ -84,5 +90,6 @@ Caso existam dúvidas sobre como instalar é possível conferir no vídeo de fun
 
 No vídeo abaixo é possível conferir como executar o projeto e o funcionamento do mesmo. 
 
-[![Demonstração](https://img.youtube.com/vi/UkCUKUDYCZ0/0.jpg)](https://www.youtube.com/watch?v=UkCUKUDYCZ0)
+*to-do*
+<!-- [![Demonstração](https://img.youtube.com/vi/UkCUKUDYCZ0/0.jpg)](https://www.youtube.com/watch?v=UkCUKUDYCZ0) -->
 
