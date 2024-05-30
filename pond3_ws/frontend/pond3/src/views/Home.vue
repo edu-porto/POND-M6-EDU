@@ -6,7 +6,7 @@
         <Control />
     </div>
     <div class="video-container">
-        <Video />
+        <Video></Video>
     </div>
 </template>
 
@@ -14,6 +14,7 @@
 import {ref} from 'vue'
 import Control from '../components/Control.vue';
 import Video from '../components/Video.vue';
+
 </script>
 
 <style scoped>

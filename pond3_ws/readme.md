@@ -7,27 +7,35 @@ Com base nas atividades desenvolvidas na última ponderada é preciso implementa
 
 ## Atividades Desenvolvidas 
 
-
-
-
-### Workspace 
-
-Na figura abaixo é possível conferir o workspace desenvolvido de acordo com o padrão ROS2. 
-
-   ![Workspace ](./assets/workspace.png)
-
-
-
-### Controle do robô
-O sistema de controle do robô permite que a partir da cli o usuário consiga interagir com funções que foram definidas para o robô. Nesse caso da ponderada o robô tem as seguintes funções e com controles.
+### Backend do robô 
+Pensando em modularização desenvolvi ambos backends de forma separada. Na API do robô o objetivo é permitir a movimentação do mesmo e ocorrer a troca de informações pelo websocket. 
+A movimentação é feita no frontend utilizando os seguintes comandos:
 
 - Mover para Frente : tecla *w*
 - Mover para Direita : tecla *d* 
 - Mover para Esquerda : tecla *a*
 - Mover de Ré : tecla *s*
-- Freiar : tecla *espaço*
 
-   ![controle](./assets/movement.png)
+O código pode ser acessado em: 
+
+    ```console
+    cd pond3_ws/backend/robot.py
+    ``` 
+
+
+### Backend da câmera 
+A api da câmera coleta as imagens da webcam e atráves de websocket manda um string constante de bytes que no frontend são convertidos para a imagem. Esse método não é um dos mais eficientes visto que o delay é quase de dois segundos. 
+
+O código pode ser acessado em: 
+
+    ```console
+    cd pond3_ws/backend/video.py
+    ``` 
+
+### Frontend
+O frontend foi desenvolvido em Vue. Existem três artefatos principais. A tela de home que aloca os componentes de controle e vídeo. É dentro dos componentes que ocorre a comunicação com o websocket e o usuário pode interagir com o frontend 
+
+   ![controle](./assets/front.png)
 
 
 
@@ -43,27 +51,31 @@ sudo apt install webots
 
 Considerando que o usuário já está em um ambiente Linux com o pacote ROS já configurado para rodar o projeto é preciso seguir os seguintes passos. 
 
- 1. No terminal é preciso acessar a pasta raiz do workspace 
 
-    ```console
-    cd pond3_ws/src
-    ``` 
-
-2. Após garantir que o terminal está dentro da raíz do backend é preciso ligar a venv e instalar os requirements.
+2. Primeiro é preciso estar dentro da raíz do backend e ligar a venv para instalar os requirements.
 
     ```console python3 - venv venv
         source venv/bin/activate 
         python3 pip install -r requirements.txt
     ``` 
+Em outro terminal é recomendado executar os mesmos passos anteriores. Visto que, são dois arquivos de backend. 
 
-3. Com o setup correto é só rodar o backend  :
+
+3. Com o setup correto é só rodar o backend para movimentar o robô:
 
 
     ```console
-	 python3 main.py
-      ```
+	 python3 robot.py
+    ```
 
-4. Agora só basta instalar o frontend e usufruir da solução: 
+4. Novamente no outro terminal é preciso rodar o backend para ligar a câmera: 
+
+
+    ```console
+	 python3 video.py
+    ```
+
+5. Agora só basta abrir outro terminal e instalar o frontend para usufruir da solução: 
 
     ```console 
     cd frontend/pond3
@@ -74,7 +86,7 @@ Considerando que o usuário já está em um ambiente Linux com o pacote ROS já 
     ```  
   Logo em seguida é possível acessar o local host e usar a interface. 
 
-5. Em outro terminal é preciso rodar o webots. Esse comando permite o usuário simular o turtlebot e controlar pelo frontend. 
+6. Em outro terminal é preciso rodar o webots. Esse comando permite o usuário simular o turtlebot e controlar pelo frontend. 
 
 
     ```console
@@ -90,6 +102,5 @@ Caso existam dúvidas sobre como instalar é possível conferir no vídeo de fun
 
 No vídeo abaixo é possível conferir como executar o projeto e o funcionamento do mesmo. 
 
-*to-do*
-<!-- [![Demonstração](https://img.youtube.com/vi/UkCUKUDYCZ0/0.jpg)](https://www.youtube.com/watch?v=UkCUKUDYCZ0) -->
+[![Demonstração](https://img.youtube.com/vi/s_AFyfMYiwI /0.jpg)](https://www.youtube.com/watch?v=s_AFyfMYiwI )
 

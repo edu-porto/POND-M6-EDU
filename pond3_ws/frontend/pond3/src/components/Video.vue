@@ -1,6 +1,6 @@
 <template>
     <canvas ref="canvas" width="440" height="380"></canvas>
-    <p>Latency: {{latency}} ms</p>
+    <p>Latência: {{latency}} ms</p>
 </template>
 
 <script>
@@ -15,7 +15,7 @@ export default {
   },
 
   mounted() {
-    this.ws = new WebSocket('ws://localhost:8000/wsVideo');
+    this.ws = new WebSocket('ws://localhost:8500/wsVideo');
     // GArantindo que o websocket tá enviando um binário 
     this.ws.binaryType = 'arraybuffer';
     this.ws.onopen = () => {
