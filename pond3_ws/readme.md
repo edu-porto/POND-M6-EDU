@@ -102,5 +102,5 @@ Caso existam dúvidas sobre como instalar é possível conferir no vídeo de fun
 
 No vídeo abaixo é possível conferir como executar o projeto e o funcionamento do mesmo. 
 
-[![Demonstração](https://img.youtube.com/vi/s_AFyfMYiwI /0.jpg)](https://www.youtube.com/watch?v=s_AFyfMYiwI )
+[![Demonstração](https://img.youtube.com/vi/s_AFyfMYiwI/0.jpg)](https://www.youtube.com/watch?v=s_AFyfMYiwI)
 
