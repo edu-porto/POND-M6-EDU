@@ -7,10 +7,19 @@ Desenvolver um multilayer perceptron que consiga resolver o problema do XOR.
 ## Atividades Desenvolvidas 
 
 ### Multilayer perceptron
+O MLP foi criado para implementar do zero uma rede neural. 
 
 O código pode ser acessado em: 
 
     cd pond4/mlp.py
+
+### Rede neural com o pytorch 
+Foi criado uma rede neural baseada no código do mlp utilizando o pytorch.
+
+O código pode ser acessado em: 
+
+    cd pond4/mlp_pytorch.ipynb
+
 
 ## Como utilizar a solução 
 
