@@ -31,6 +31,9 @@ def preprocess_image(img_path):
     img = img.reshape(1, 28, 28, 1)  
     return img
 
+
+
+# Função que faz o upload da imagem
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'image' not in request.files:
@@ -44,6 +47,7 @@ def upload_image():
         file.save(file_path)
         return redirect(url_for('predict', filename=filename))
 
+# Função que faz a predição da ultima imagem enviada
 @app.route('/predict/<filename>')
 def predict(filename):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -52,6 +56,7 @@ def predict(filename):
     prediction_class = np.argmax(prediction, axis=1)[0]
     return render_template('result.html', filename=filename, prediction_class=prediction_class)
 
+# Função que manda a imagem para a pasta uploads
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

@@ -3,22 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2-Training</title>
-    <script>
-        async function getJoke() {
-            const response = await fetch('https://api.chucknorris.io/jokes/random');
-            const data = await response.json();
-            alert(data.value);
-        }
-    </script>
+    <title>Ponderada 5</title>
 </head>
 <body>
-    <H2>Coding this while i listen to Sara Landry </H2>
-    <h5>Check out her dj set https://www.youtube.com/watch?v=lnIE2q7xpDc&t=6093s </h5>
-
-    <button onclick="getJoke()">LET'S HEAR A JOKE</button>
-    
-    <h3>Upload an Image</h3>
+    <h3>Envie uma imagem</h3>
+    <p>O objetivo deste site é permitir com que o usuário envie uma foto para o modelo e ele retorne o número que foi detectado.</p>
     <form action="{{ url_for('upload_image') }}" method="post" enctype="multipart/form-data">
         <input type="file" name="image">
         <input type="submit" value="Upload">

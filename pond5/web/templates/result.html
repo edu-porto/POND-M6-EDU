@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Prediction Result</title>
+    <title>Resultado da classificação com uma CNN </title>
     <style>
         img {
             max-width: 640px;
@@ -14,9 +14,9 @@
     </style>
 </head>
 <body>
-    <h1>Image Prediction Result</h1>
+    <h1>Resultado da classificação</h1>
     <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Uploaded Image">
-    <h2>Predicted Class: {{ prediction_class }}</h2>
-    <a href="{{ url_for('index') }}">Upload Another Image</a>
+    <h2>Número encontrado pelo modelo: {{ prediction_class }}</h2>
+    <a href="{{ url_for('index') }}">Enviar outra foto</a>
 </body>
 </html>
