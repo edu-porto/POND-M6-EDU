@@ -56,7 +56,7 @@ def predict(filename):
     prediction_class = np.argmax(prediction, axis=1)[0]
     return render_template('result.html', filename=filename, prediction_class=prediction_class)
 
-# Função que manda a imagem para a pasta uploads
+# Função que retorna a imagem enviada para o frontend.
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
